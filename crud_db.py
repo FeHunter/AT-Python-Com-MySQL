@@ -36,7 +36,6 @@ def excluir_todos_produtos_db():
     finally:
         desconectar(session)
 
-
 def excluir_todos_clientes_db():
     """Apaga todos os clientes e seus registros associados no banco de dados."""
     try:
@@ -57,7 +56,6 @@ def excluir_todos_clientes_db():
         print(f"Erro ao excluir clientes: {ex}")
     finally:
         desconectar(session)
-
 
 def adicionar_produto_db(produto):
     """Adiciona um novo produto ao banco de dados."""
@@ -102,6 +100,8 @@ def adicionar_cliente_db (nome_cliente):
         print(ex)
     finally:
         desconectar(session)
+        clientes_atualizados = consultar_todos_classe_db(Cliente)
+        return clientes_atualizados
 
 def atualizar_produtos_db(produtos):
     """Atualizar produtos no banco"""
@@ -118,7 +118,7 @@ def atualizar_produtos_db(produtos):
         desconectar(session)
 
 def consultar_todos_classe_db(classe):
-    """Retorna todos os registros de uma tabela específica."""
+    """Retorna todos os registros de uma tabela"""
     try:
         session = conectar()
         return session.query(classe).all()

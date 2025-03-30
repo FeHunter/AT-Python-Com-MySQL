@@ -15,8 +15,8 @@ def caixa(produtos, clientes):
         # Adicionar novo cliente
         if escolha_cliente == len(clientes) + 1:
             nome_cliente = input("Digite o nome do cliente: ")
-            adicionar_cliente_db(nome_cliente)
-            clientes = consultar_todos_classe_db(Cliente)  # Atualiza a lista do banco
+            clientes = adicionar_cliente_db(nome_cliente)
+            # clientes = consultar_todos_classe_db(Cliente)  # Atualiza a lista do banco
 
         # Fechar caixa
         if escolha_cliente == len(clientes) + 2:
