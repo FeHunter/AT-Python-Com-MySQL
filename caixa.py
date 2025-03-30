@@ -14,7 +14,6 @@ def controle_caixa(produtos_disponiveis):
 
 def adicionar_produto(produtos, id_produto, itens_cliente):
     for produto in produtos:
-        print(f'id do produto: {produto.id_produto} | id digitado = {id_produto}')
         # Aqui vamos acessar o atributo 'id_produto' diretamente
         if produto.id_produto == id_produto:
             print(f"{produto.nome} está sendo adicionado.")

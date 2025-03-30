@@ -49,7 +49,6 @@ def entrar_id (produtos):
             id = int(input("Digite o id do produto: "))
             if pesquisar_id(produtos, id):
                 produto = produto_pelo_id(produtos, id)
-                print(f'quantidade | {produto.quantidade}')
                 if produto.quantidade > 0:
                     return int(id)
                 else:
@@ -80,7 +79,7 @@ def verificar_estoque(produto, quantidade):
 def remover_produto_estoque (produtos, id, quantidade):
     for produto in produtos:
         if produto.id_produto == id:
-            produto['quantidade'] -= quantidade
+            produto.quantidade -= quantidade
     return produtos
 
 def produto_pelo_id (produtos, id):
