@@ -97,3 +97,6 @@ def msg_informacoes_cliente (client_id):
     data_hora = datetime.now()
     data_hora_formatado = data_hora.strftime("%d/%m/%Y %H:%M")
     print(f"Data: {data_hora_formatado}")
+
+def obter_data_atual():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")

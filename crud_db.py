@@ -5,26 +5,58 @@ from sqlalchemy import text
 session = conectar()
 
 def excluir_todos_produtos_db():
-    """Apaga todos os produtos do banco de dados."""
+    """Apaga todos os produtos, itens e compras associadas no banco de dados."""
     try:
         session = conectar()
-        session.query(Produto).delete()
+
+        # Desabilitar o modo de atualização segura
+        session.execute(text('SET SQL_SAFE_UPDATES = 0'))
+
+        # Excluir todos os itens
+        session.execute(text('DELETE FROM Item'))
         session.commit()
+
+        # Excluir todas as compras
+        session.execute(text('DELETE FROM Compra'))
+        session.commit()
+
+        # Excluir todos os produtos
+        session.execute(text('DELETE FROM Produto'))
+        session.commit()
+
+        # Resetar o auto incremento das tabelas
+        session.execute(text('ALTER TABLE Produto AUTO_INCREMENT = 1'))
+        session.execute(text('ALTER TABLE Item AUTO_INCREMENT = 1'))
+        session.execute(text('ALTER TABLE Compra AUTO_INCREMENT = 1'))
+        session.commit()
+
     except Exception as ex:
-        print(ex)
+        print(f"Erro ao excluir produtos: {ex}")
     finally:
         desconectar(session)
 
+
 def excluir_todos_clientes_db():
-    """Apaga todos os clientes do banco de dados."""
+    """Apaga todos os clientes e seus registros associados no banco de dados."""
     try:
         session = conectar()
-        session.query(Cliente).delete()
+
+        # Desabilitar o modo de atualização segura
+        session.execute(text('SET SQL_SAFE_UPDATES = 0'))
+
+        # Excluir todos os registros de clientes
+        session.execute(text('DELETE FROM Cliente'))
         session.commit()
+
+        # Resetar o auto incremento das tabelas
+        session.execute(text('ALTER TABLE Cliente AUTO_INCREMENT = 1'))
+        session.commit()
+
     except Exception as ex:
-        print(ex)
+        print(f"Erro ao excluir clientes: {ex}")
     finally:
         desconectar(session)
+
 
 def adicionar_produto_db(produto):
     """Adiciona um novo produto ao banco de dados."""
@@ -82,29 +114,42 @@ def consultar_todos_classe_db(classe):
         desconectar(session)
 
 def registrar_compra(id_cliente, itens_cliente):
-    """Registra uma compra na tabela `compra` e adiciona os itens na tabela `item`."""
+    """Registra uma compra no banco de dados e associa os itens à compra."""
     try:
         session = conectar()
-        # Criar um novo registro de compra
-        nova_compra = Compra(id_cliente=id_cliente)
-        session.add(nova_compra)
-        session.commit()  # Salva para gerar o ID da compra
+        
+        print("Criando nova compra para o cliente:", id_cliente)  # 🔍 Debug
 
-        # Adicionar os itens comprados na tabela `item`
+        nova_compra = Compra(data_compra=obter_data_atual(), id_cliente=id_cliente)
+        session.add(nova_compra)
+        session.commit()  # 🔍 Garantir que ID da compra seja gerado
+
+        print(f"Compra criada com sucesso! ID: {nova_compra.id_compra}")
+
+        lista_itens = []
         for item in itens_cliente:
+            print("Adicionando item:", item)  # 🔍 Verificar se os dados estão corretos
+
             novo_item = Item(
+                quantidade=item["quantidade"],
                 id_compra=nova_compra.id_compra,
-                id_produto=item["id_produto"],
-                quantidade=item["quantidade"]
+                id_produto=item["id_produto"]
             )
             session.add(novo_item)
+            lista_itens.append(novo_item)
 
-            # Atualizar a quantidade de produtos no estoque
             produto = session.query(Produto).filter_by(id_produto=item["id_produto"]).first()
             if produto:
                 produto.quantidade -= item["quantidade"]
+                print(f"Estoque atualizado para {produto.nome}: {produto.quantidade}")
+            else:
+                print(f"Produto ID {item['id_produto']} não encontrado!")
 
-        session.commit()  # Salva todas as mudanças
+        session.commit()  # 🔍 Este commit é essencial
+        print(f"Compra ID {nova_compra.id_compra} e {len(lista_itens)} itens registrados no banco!")
+
+        return nova_compra.id_compra
+
     except Exception as ex:
         print("Erro ao registrar a compra:", ex)
         session.rollback()

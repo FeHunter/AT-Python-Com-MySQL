@@ -44,8 +44,8 @@ class Compra(Base):
     data_compra = Column(String)
     id_cliente = Column(Integer, ForeignKey("cliente.id_cliente"))
 
-    cliente = relationship("Cliente", back_populates="compras")
-    itens = relationship("Item", back_populates="compra", cascade="all, delete-orphan")
+    cliente = relationship("Cliente", back_populates="compras", lazy="joined")
+    itens = relationship("Item", back_populates="compra", cascade="all, delete-orphan", lazy="joined")
 
     def __init__(self, data_compra, id_cliente):
         self.data_compra = data_compra

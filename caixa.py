@@ -2,6 +2,10 @@ from tabulate import tabulate
 from utils import *
 from models import *
 from crud_db import *
+from sqlalchemy.orm import sessionmaker
+
+# A sessão do banco de dados
+session = conectar()
 
 def controle_caixa(produtos_disponiveis):
     produtos = produtos_disponiveis
@@ -12,6 +16,7 @@ def controle_caixa(produtos_disponiveis):
         id_produto = entrar_id(produtos)
         produtos, itens_cliente = adicionar_produto(produtos, id_produto, itens_cliente)
         flag = msg_finalizar_atendimento()  # Pergunta se quer finalizar atendimento
+    print("Itens no carrinho:", itens_cliente)  # Verificação
     return produtos, itens_cliente
 
 def adicionar_produto(produtos, id_produto, itens_cliente):
@@ -61,7 +66,7 @@ def caixa(produtos, clientes):
             clientes = consultar_todos_classe_db(Cliente)  # Atualiza a lista do banco
 
         if escolha_cliente == len(clientes) + 2:  # Fechar caixa
-            mostrar_resumo_caixa()
+            mostrar_resumo_caixa(produtos)  # Passando a lista de produtos como parâmetro
             mostrar_produtos_sem_estoque(produtos)
             break
 
@@ -69,6 +74,8 @@ def caixa(produtos, clientes):
         print(f"\nIniciando atendimento do Cliente {clientes[escolha_cliente - 1].nome}")
 
         produtos, itens_cliente = controle_caixa(produtos)
+
+        print("Itens comprados antes de registrar a compra:", itens_cliente)  # Verificação
 
         if itens_cliente:
             id_compra = registrar_compra(id_cliente, itens_cliente)
@@ -78,44 +85,81 @@ def caixa(produtos, clientes):
         if flag != 's':
             break
 
-    mostrar_resumo_caixa()
+    mostrar_resumo_caixa(produtos)  # Passando a lista de produtos como parâmetro
     return produtos
+
+def registrar_compra(id_cliente, itens_cliente):
+    nova_compra = Compra(data_compra=obter_data_atual(), id_cliente=id_cliente)
+    session.add(nova_compra)
+    session.commit()
+
+    for item in itens_cliente:
+        # Verificar se 'item' é um dicionário antes de tentar acessar as chaves
+        if isinstance(item, dict):
+            novo_item = Item(
+                quantidade=item['quantidade'],
+                id_compra=nova_compra.id_compra,
+                id_produto=item['id_produto']
+            )
+            session.add(novo_item)
+        else:
+            print(f"Item {item} não é um dicionário válido!")
+
+    session.commit()
+    print("Compra registrada com sucesso!")
+    return nova_compra.id_compra
 
 def imprimir_nota_cliente(itens_cliente, id_compra):
     tabela = []
     total_cliente = 0
 
     for item in itens_cliente:
-        id_item = item.get('id_produto')
-        nome = item.get('nome')
-        quantidade = item.get('quantidade')
-        preco = item.get('preco')
+        if isinstance(item, dict):  # Verificar se é um dicionário antes de acessar
+            id_item = item.get('id_produto')
+            nome = item.get('nome')
+            quantidade = item.get('quantidade')
+            preco = item.get('preco')
 
-        total = quantidade * preco
-        tabela.append([id_item, nome, quantidade, preco, total])
-        total_cliente += total
+            total = quantidade * preco
+            tabela.append([id_item, nome, quantidade, preco, total])
+            total_cliente += total
+        else:
+            print(f"Item {item} não é um dicionário válido!")
 
     print(f"\nNota do Cliente - Compra ID {id_compra}:")
     print(tabulate(tabela, headers=["Item", "Produto", "Quant.", "Preço", "Total"], tablefmt="grid"))
     print(f"Itens: {len(itens_cliente)}")
     print(f"Total: {total_cliente}\n")
 
-def mostrar_resumo_caixa():
+def mostrar_resumo_caixa(produtos):
     compras = consultar_todos_classe_db(Compra)
     resumo = []
     total_vendas = 0
 
     for compra in compras:
-        total_cliente = sum(item.produto.preco * item.quantidade for item in compra.itens)
-        total_vendas += total_cliente
-        resumo.append([f"Cliente {compra.id_cliente}", total_cliente])
+        # Agora, acessamos os produtos diretamente, evitando o erro de DetachedInstanceError
+        for item in compra.itens:
+            produto = buscar_produto_por_id(item.id_produto, produtos)  # Busca o produto explicitamente
+            total_cliente = produto.preco * item.quantidade
+            total_vendas += total_cliente
+            resumo.append([f"Cliente {compra.id_cliente}", total_cliente])
 
     print("\nFechamento do Caixa:")
     print(tabulate(resumo, headers=["Cliente", "Total"], tablefmt="grid"))
     print(f"Total de vendas: {total_vendas}")
+
+def buscar_produto_por_id(id_produto, produtos):
+    for produto in produtos:
+        if produto.id_produto == id_produto:
+            return produto
+    return None  # Caso o produto não seja encontrado
 
 def mostrar_produtos_sem_estoque(produtos):
     print("\nProdutos sem estoque:")
     for produto in produtos:
         if int(produto.quantidade) <= 0:
             print(produto.nome)
+
+# Função para carregar compras com itens e produtos relacionados
+def consultar_compras_com_produtos():
+    return session.query(Compra).all()  # Sem o joinedload, apenas a consulta básica
