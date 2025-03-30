@@ -1,6 +1,7 @@
 from conectar_db import *
 from models import *
 from sqlalchemy import text
+from utils import *
 
 session = conectar()
 
@@ -114,44 +115,36 @@ def consultar_todos_classe_db(classe):
         desconectar(session)
 
 def registrar_compra(id_cliente, itens_cliente):
-    """Registra uma compra no banco de dados e associa os itens à compra."""
-    try:
-        session = conectar()
-        
-        print("Criando nova compra para o cliente:", id_cliente)  # 🔍 Debug
+    nova_compra = Compra(data_compra=obter_data_atual(), id_cliente=id_cliente)
+    session.add(nova_compra)
+    session.commit()  # Commit inicial para garantir que a compra tenha um ID gerado
 
-        nova_compra = Compra(data_compra=obter_data_atual(), id_cliente=id_cliente)
-        session.add(nova_compra)
-        session.commit()  # 🔍 Garantir que ID da compra seja gerado
-
-        print(f"Compra criada com sucesso! ID: {nova_compra.id_compra}")
-
-        lista_itens = []
-        for item in itens_cliente:
-            print("Adicionando item:", item)  # 🔍 Verificar se os dados estão corretos
-
+    for item in itens_cliente:
+        if isinstance(item, dict):  # Verificar se 'item' é um dicionário válido
             novo_item = Item(
-                quantidade=item["quantidade"],
+                quantidade=item['quantidade'],
                 id_compra=nova_compra.id_compra,
-                id_produto=item["id_produto"]
+                id_produto=item['id_produto']
             )
             session.add(novo_item)
-            lista_itens.append(novo_item)
 
-            produto = session.query(Produto).filter_by(id_produto=item["id_produto"]).first()
+            # Carregar o produto da base de dados e garantir que o objeto está sendo rastreado pela sessão
+            produto = session.query(Produto).filter_by(id_produto=item['id_produto']).first()
+            
             if produto:
-                produto.quantidade -= item["quantidade"]
-                print(f"Estoque atualizado para {produto.nome}: {produto.quantidade}")
+                produto.quantidade -= item['quantidade']  # Diminuir a quantidade do estoque
+                
+                # Confirmar que o produto foi modificado antes de persistir
+                session.add(produto)  # Re-adicionar o produto à sessão para garantir que a mudança seja registrada
+                session.commit()  # Persistir a alteração da quantidade
             else:
-                print(f"Produto ID {item['id_produto']} não encontrado!")
+                print(f"Produto {item['id_produto']} não encontrado!")
 
-        session.commit()  # 🔍 Este commit é essencial
-        print(f"Compra ID {nova_compra.id_compra} e {len(lista_itens)} itens registrados no banco!")
+        else:
+            print(f"Item {item} não é um dicionário válido!")
 
-        return nova_compra.id_compra
+    session.commit()  # Commit final para registrar todos os itens na compra
+    print("Compra registrada com sucesso!")
+    return nova_compra.id_compra
 
-    except Exception as ex:
-        print("Erro ao registrar a compra:", ex)
-        session.rollback()
-    finally:
-        desconectar(session)
+
