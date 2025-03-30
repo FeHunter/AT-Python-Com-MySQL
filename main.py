@@ -3,7 +3,7 @@ from crud_db import *
 from models import *
 from caixa import caixa
 
-def produtos_csv_para_db ():
+def produtos_csv_para_db():
     produtos = ler_arquivo("produtos.csv")
     # Adicionar produtos no banco de dados
     excluir_todos_produtos_db()
@@ -12,7 +12,7 @@ def produtos_csv_para_db ():
     produtos_db = consultar_todos_classe_db(Produto)
     return produtos_db
 
-def clientes_csv_para_db ():
+def clientes_csv_para_db():
     clientes = ler_arquivo("clientes.csv")
     # Adicionar clientes ao banco
     excluir_todos_clientes_db()
@@ -21,11 +21,11 @@ def clientes_csv_para_db ():
     clientes_db = consultar_todos_classe_db(Cliente)
     return clientes_db
 
-produtos = produtos_csv_para_db ()
-clientes = clientes_csv_para_db ()
+produtos = produtos_csv_para_db()
+clientes = clientes_csv_para_db()
 
 if produtos != []:
-    produtos = caixa(produtos, clientes)
+    produtos = caixa(produtos, clientes)  # Chamando caixa para múltiplos atendimentos
 gravar_arquivo(produtos)
 
 '''

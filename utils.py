@@ -49,19 +49,21 @@ def entrar_id (produtos):
             id = int(input("Digite o id do produto: "))
             if pesquisar_id(produtos, id):
                 produto = produto_pelo_id(produtos, id)
-                if produto[2] > 0:
-                    return id
+                print(f'quantidade | {produto.quantidade}')
+                if produto.quantidade > 0:
+                    return int(id)
                 else:
                     print("Produto sem estoque")
     except:
-        print("Entrada inválida")
+        print("Entrada inválida, ID não localizado.")
     
 def pesquisar_id (produtos, id):
     '''
     faz a busca pelo id do produto dentro da lista de produtos, caso encontre retorna o id se não retorna -1
     '''
     for produto in produtos:
-        if (produto[0] == id):
+        # print(f'id do produto dentro do pesquisar_id: {produto.id_produto} | id digitado: {id}')
+        if (int(produto.id_produto) == id):
             return True
     print("Produto não cadastrado")
     return False
@@ -70,20 +72,20 @@ def verificar_estoque(produto, quantidade):
     '''
     Recebe o produto e quantidade informada e verificar se o estoque e suficiente
     '''
-    if int(produto[2]) >= int(quantidade):
+    if int(produto.quantidade) >= int(quantidade):
         return True
     else:
         return False
             
 def remover_produto_estoque (produtos, id, quantidade):
     for produto in produtos:
-        if produto[0] == id:
-            produto[2] -= quantidade
+        if produto.id_produto == id:
+            produto['quantidade'] -= quantidade
     return produtos
 
 def produto_pelo_id (produtos, id):
     for produto in produtos:
-        if produto[0] == id:
+        if produto.id_produto == id:
             return produto
 
 def imprimir_produtos (produtos):

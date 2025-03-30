@@ -4,35 +4,40 @@ from utils import *
 def controle_caixa(produtos_disponiveis):
     produtos = produtos_disponiveis
     itens_cliente = []
-    flag = msg_iniciar_atendimento()
+    flag = msg_iniciar_atendimento()  # Pergunta se quer iniciar o atendimento
     while flag:
         imprimir_produtos(produtos)
         id_produto = entrar_id(produtos)
         produtos, itens_cliente = adicionar_produto(produtos, id_produto, itens_cliente)
-        flag = msg_finalizar_atendimento()
+        flag = msg_finalizar_atendimento()  # Pergunta se quer finalizar atendimento
     return produtos, itens_cliente
 
 def adicionar_produto(produtos, id_produto, itens_cliente):
     for produto in produtos:
-        if produto[0] == id_produto:
-            print(f"{produto[1]} está sendo adicionado.")
+        print(f'id do produto: {produto.id_produto} | id digitado = {id_produto}')
+        # Aqui vamos acessar o atributo 'id_produto' diretamente
+        if produto.id_produto == id_produto:
+            print(f"{produto.nome} está sendo adicionado.")
             quantidade = entrar_quantidade(produto)
             produtos = remover_produto_estoque(produtos, id_produto, quantidade)
             # copia o produto e adiciona ao carrinho
-            add_produto = produto[:]
-            add_produto[2] = quantidade
+            add_produto = produto.__dict__.copy()  # Copia os dados do produto para a lista
+            add_produto['quantidade'] = quantidade  # Adiciona a quantidade ao item
             itens_cliente.append(add_produto)
-            print(f"{produto[1]} foi adicionado.")
+            print(f"{produto.nome} foi adicionado.")
     return produtos, itens_cliente
+
 
 def caixa(produtos, clientes):
     contador_clientes = 0
     while True:
+        # Pergunta se quer iniciar atendimento para o próximo cliente
+        print(f"\nIniciando atendimento do Cliente {contador_clientes + 1}")
         produtos, itens_cliente = controle_caixa(produtos)
-        clientes.append(itens_cliente)
+        clientes.append(itens_cliente)  # Adiciona o atendimento do cliente
         imprimir_nota_cliente(clientes, contador_clientes)
         contador_clientes += 1
-        if msg_fechar_caixa():
+        if not msg_finalizar_atendimento():  # Pergunta se quer continuar o atendimento de mais clientes
             break
     mostrar_resumo_caixa(clientes)
     mostrar_produtos_sem_estoque(produtos)
@@ -72,4 +77,3 @@ def mostrar_produtos_sem_estoque(produtos):
     for produto in produtos:
         if int(produto[2]) <= 0:
             print(produto[1])
-
