@@ -39,6 +39,17 @@ def adicionar_cliente(clientes):
     clientes.append(novo_cliente)
     print(f"Cliente {novo_cliente.nome} adicionado com sucesso!")
 
+def entrar_op_cliente (clientes):
+    while True:
+        try:
+            op = int(input("\nEscolha um cliente para atender: "))
+            if op != '' and op > 0 and op <= len(clientes) + 2:
+                return op
+            else:
+                print("Entrada invalida")
+        except:
+            print("Entrada invalida")
+
 def caixa(produtos, clientes):
     caixa_atendimentos = []  # Lista para armazenar todos os atendimentos realizados
     
@@ -46,7 +57,7 @@ def caixa(produtos, clientes):
         # Exibe a lista de clientes e opções
         listar_clientes(clientes)
         
-        escolha_cliente = int(input("\nEscolha um cliente para atender: "))
+        escolha_cliente = entrar_op_cliente(clientes)
         
         if escolha_cliente == len(clientes) + 1: # Adicionar novo cliente
             adicionar_cliente(clientes)
