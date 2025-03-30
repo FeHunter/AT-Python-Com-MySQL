@@ -35,4 +35,7 @@ sqlalchemy
 pymysql
 tabulate
 pandas
+
+para teste descomentar as funções para excluir os dados das tabelas
+
 '''
