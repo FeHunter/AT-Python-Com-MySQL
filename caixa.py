@@ -33,6 +33,8 @@ def listar_clientes(clientes):
     print(f"{len(clientes) + 1}. Fechar Caixa")
 
 def caixa(produtos, clientes):
+    caixa_atendimentos = []  # Lista para armazenar todos os atendimentos realizados
+    
     while True:
         # Exibe a lista de clientes e opções
         listar_clientes(clientes)
@@ -40,7 +42,7 @@ def caixa(produtos, clientes):
         escolha_cliente = int(input("\nEscolha um cliente para atender ou '0' para fechar o caixa: "))
         
         if escolha_cliente == len(clientes) + 1:  # Fechar caixa
-            mostrar_resumo_caixa(clientes)
+            mostrar_resumo_caixa(caixa_atendimentos)  # Passa a lista de atendimentos para o resumo
             mostrar_produtos_sem_estoque(produtos)
             break
         
@@ -52,6 +54,8 @@ def caixa(produtos, clientes):
         print(f"\nIniciando atendimento do Cliente {escolha_cliente}")
         produtos, itens_cliente = controle_caixa(produtos)
         clientes[escolha_cliente - 1] = itens_cliente  # Atualiza o atendimento do cliente existente
+        
+        caixa_atendimentos.append(itens_cliente)  # Adiciona o atendimento do cliente à lista de atendimentos
         imprimir_nota_cliente(itens_cliente)  # Imprime a nota do cliente
         print("\nAtendimento finalizado!")
         
@@ -59,7 +63,7 @@ def caixa(produtos, clientes):
         if flag != 's':
             break
 
-    mostrar_resumo_caixa(clientes)
+    mostrar_resumo_caixa(caixa_atendimentos)  # Exibe o resumo ao final
     return produtos
 
 def imprimir_nota_cliente(itens_cliente):
@@ -81,15 +85,14 @@ def imprimir_nota_cliente(itens_cliente):
     print(f"Itens: {len(itens_cliente)}")
     print(f"Total: {total_cliente}\n")
 
-def mostrar_resumo_caixa(clientes):
+def mostrar_resumo_caixa(caixa_atendimentos):
     resumo = []
     total_vendas = 0
 
-    for i in range(0, len(clientes)):
-        cliente = clientes[i]
+    for i, cliente in enumerate(caixa_atendimentos, start=1):
         total_cliente = sum(item['quantidade'] * item['preco'] for item in cliente)  # Acesso correto aos dados
         total_vendas += total_cliente
-        resumo.append([f"Cliente: {i+1}", total_cliente])
+        resumo.append([f"Cliente {i}", total_cliente])
 
     print("\nFechamento do Caixa:")
     print(tabulate(resumo, headers=["Cliente", "Total"], tablefmt="grid"))
@@ -100,3 +103,4 @@ def mostrar_produtos_sem_estoque(produtos):
     for produto in produtos:
         if int(produto[2]) <= 0:
             print(produto[1])
+
