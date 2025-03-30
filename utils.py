@@ -76,11 +76,18 @@ def verificar_estoque(produto, quantidade):
     else:
         return False
             
-def remover_produto_estoque (produtos, id, quantidade):
+def remover_produto_estoque(session, produtos, id_produto, quantidade):
     for produto in produtos:
-        if produto.id_produto == id:
-            produto.quantidade -= quantidade
+        if produto.id_produto == id_produto:
+            if produto.quantidade >= quantidade:
+                produto.quantidade -= quantidade  # Atualiza a quantidade localmente
+                # Aqui, o banco de dados precisa ser atualizado
+                session.commit()  # Confirma a alteração no banco de dados
+                print(f"{produto.nome} teve {quantidade} unidades removidas do estoque.")
+            else:
+                print(f"Estoque insuficiente para {produto.nome}.")
     return produtos
+
 
 def produto_pelo_id (produtos, id):
     for produto in produtos:

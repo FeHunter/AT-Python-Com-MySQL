@@ -27,8 +27,7 @@ produtos = produtos_csv_para_db()
 clientes = clientes_csv_para_db()
 
 if produtos != []:
-    produtos = caixa(produtos, clientes)
-
+    caixa(produtos, clientes)
 
 '''
 para instalar:

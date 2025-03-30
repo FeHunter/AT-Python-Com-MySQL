@@ -103,6 +103,20 @@ def adicionar_cliente_db (nome_cliente):
     finally:
         desconectar(session)
 
+def atualizar_produtos_db(produtos):
+    """Atualizar produtos no banco"""
+    try:
+        session = conectar()
+        for produto in produtos:
+            produto_db = session.get(Produto, produto.id_produto)
+            if produto_db:
+                produto_db.quantidade = produto.quantidade  # Atualiza a quantidade
+        session.commit()
+    except Exception as ex:
+        print(f"Erro ao atualizar os produtos: {ex}")
+    finally:
+        desconectar(session)
+
 def consultar_todos_classe_db(classe):
     """Retorna todos os registros de uma tabela específica."""
     try:

@@ -2,10 +2,42 @@ from tabulate import tabulate
 from utils import *
 from models import *
 from crud_db import *
-from sqlalchemy.orm import sessionmaker
 
 # A sessão do banco de dados
 session = conectar()
+
+# função principal
+def caixa(produtos, clientes):
+    while True:
+        listar_clientes(clientes)
+        escolha_cliente = entrar_op_cliente(clientes)
+
+        # Adicionar novo cliente
+        if escolha_cliente == len(clientes) + 1:
+            nome_cliente = input("Digite o nome do cliente: ")
+            adicionar_cliente_db(nome_cliente)
+            clientes = consultar_todos_classe_db(Cliente)  # Atualiza a lista do banco
+
+        # Fechar caixa
+        if escolha_cliente == len(clientes) + 2:
+            break
+
+        # selecionar cliente na lista
+        id_cliente = clientes[escolha_cliente - 1].id_cliente
+        print(f"\nIniciando atendimento do Cliente {clientes[escolha_cliente - 1].nome}")
+
+        produtos, itens_cliente = controle_caixa(produtos)
+
+        if itens_cliente:
+            id_compra = registrar_compra(id_cliente, itens_cliente)
+            imprimir_nota_cliente(itens_cliente, id_compra)
+
+        flag = input("\nDeseja atender outro cliente? (s/n): ").lower()
+        if flag != 's':
+            break
+
+    mostrar_resumo_caixa(produtos)
+    mostrar_produtos_sem_estoque(produtos)
 
 def controle_caixa(produtos_disponiveis):
     produtos = produtos_disponiveis
@@ -16,15 +48,24 @@ def controle_caixa(produtos_disponiveis):
         id_produto = entrar_id(produtos)
         produtos, itens_cliente = adicionar_produto(produtos, id_produto, itens_cliente)
         flag = msg_finalizar_atendimento()  # Pergunta se quer finalizar atendimento
-    print("Itens no carrinho:", itens_cliente)  # Verificação
-    return produtos, itens_cliente
+    
+    # atualizar produtos no banco 
+    atualizar_produtos_db(produtos)
+    return produtos, itens_cliente # infelizmente preciso retorna os dois aqui, não conseguir pensar em um jeito mais facil pra não retorna dois valres
 
 def adicionar_produto(produtos, id_produto, itens_cliente):
     for produto in produtos:
         if produto.id_produto == id_produto:
-            print(f"{produto.nome} está sendo adicionado.")
+            print(f"{produto.nome} esta sendo adicionado.")
             quantidade = entrar_quantidade(produto)
-            produtos = remover_produto_estoque(produtos, id_produto, quantidade)
+            
+            # Verificar o estoque
+            if quantidade > produto.quantidade:
+                print(f"Quantidade solicitada para {produto.nome} e maior que o estoque disponível.")
+                return produtos, itens_cliente
+            
+            # remove quantidade do estoque
+            produto.quantidade -= quantidade
             
             # Cria um dicionário com os dados do item comprado
             add_produto = {
@@ -55,41 +96,8 @@ def entrar_op_cliente(clientes):
         except ValueError:
             print("Entrada inválida. Digite um número válido.")
 
-def caixa(produtos, clientes):
-    while True:
-        listar_clientes(clientes)
-        escolha_cliente = entrar_op_cliente(clientes)
-
-        if escolha_cliente == len(clientes) + 1:  # Adicionar novo cliente
-            nome_cliente = input("Digite o nome do cliente: ")
-            id_novo_cliente = adicionar_cliente_db(nome_cliente)
-            clientes = consultar_todos_classe_db(Cliente)  # Atualiza a lista do banco
-
-        if escolha_cliente == len(clientes) + 2:  # Fechar caixa
-            mostrar_resumo_caixa(produtos)  # Passando a lista de produtos como parâmetro
-            mostrar_produtos_sem_estoque(produtos)
-            break
-
-        id_cliente = clientes[escolha_cliente - 1].id_cliente
-        print(f"\nIniciando atendimento do Cliente {clientes[escolha_cliente - 1].nome}")
-
-        produtos, itens_cliente = controle_caixa(produtos)
-
-        print("Itens comprados antes de registrar a compra:", itens_cliente)  # Verificação
-
-        if itens_cliente:
-            id_compra = registrar_compra(id_cliente, itens_cliente)
-            imprimir_nota_cliente(itens_cliente, id_compra)
-
-        flag = input("\nDeseja atender outro cliente? (s/n): ").lower()
-        if flag != 's':
-            break
-
-    mostrar_resumo_caixa(produtos)  # Passando a lista de produtos como parâmetro
-    return produtos
-
 def registrar_compra(id_cliente, itens_cliente):
-    nova_compra = Compra(data_compra=obter_data_atual(), id_cliente=id_cliente)
+    nova_compra = Compra(obter_data_atual(), id_cliente)
     session.add(nova_compra)
     session.commit()
 
@@ -103,7 +111,7 @@ def registrar_compra(id_cliente, itens_cliente):
             )
             session.add(novo_item)
         else:
-            print(f"Item {item} não é um dicionário válido!")
+            print(f"Erro: {item} não esta correto em formato de dicionario")
 
     session.commit()
     print("Compra registrada com sucesso!")
@@ -124,7 +132,7 @@ def imprimir_nota_cliente(itens_cliente, id_compra):
             tabela.append([id_item, nome, quantidade, preco, total])
             total_cliente += total
         else:
-            print(f"Item {item} não é um dicionário válido!")
+            print(f"Erro: {item} não esta correto em formato de dicionario")
 
     print(f"\nNota do Cliente - Compra ID {id_compra}:")
     print(tabulate(tabela, headers=["Item", "Produto", "Quant.", "Preço", "Total"], tablefmt="grid"))
@@ -137,9 +145,8 @@ def mostrar_resumo_caixa(produtos):
     total_vendas = 0
 
     for compra in compras:
-        # Agora, acessamos os produtos diretamente, evitando o erro de DetachedInstanceError
         for item in compra.itens:
-            produto = buscar_produto_por_id(item.id_produto, produtos)  # Busca o produto explicitamente
+            produto = buscar_produto_por_id(item.id_produto, produtos)  # Busca o produto
             total_cliente = produto.preco * item.quantidade
             total_vendas += total_cliente
             resumo.append([f"Cliente {compra.id_cliente}", total_cliente])
@@ -162,4 +169,4 @@ def mostrar_produtos_sem_estoque(produtos):
 
 # Função para carregar compras com itens e produtos relacionados
 def consultar_compras_com_produtos():
-    return session.query(Compra).all()  # Sem o joinedload, apenas a consulta básica
+    return session.query(Compra).all()
