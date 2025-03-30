@@ -16,6 +16,8 @@ class Cliente(Base):
 
     def __str__(self):
         return f"{self.id_cliente} {self.nome}"
+    def __repr__(self):
+        return f"{self.id_cliente} {self.nome}"
     
 class Produto(Base):
     __tablename__ = "produto"
@@ -31,6 +33,8 @@ class Produto(Base):
         self.preco = float(preco)
 
     def __str__(self):
+        return f"{self.id_produto} {self.nome} {self.quantidade} {self.preco}"
+    def __repr__(self):
         return f"{self.id_produto} {self.nome} {self.quantidade} {self.preco}"
 
 class Compra(Base):

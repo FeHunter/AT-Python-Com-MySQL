@@ -25,8 +25,7 @@ def adicionar_produto(produtos, id_produto, itens_cliente):
             print(f"{produto[1]} foi adicionado.")
     return produtos, itens_cliente
 
-def caixa(produtos):
-    clientes = []
+def caixa(produtos, clientes):
     contador_clientes = 0
     while True:
         produtos, itens_cliente = controle_caixa(produtos)

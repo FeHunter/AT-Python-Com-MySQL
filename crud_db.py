@@ -56,15 +56,14 @@ def adicionar_clients_csv_db(cliente):
     finally:
         desconectar(session)
 
-def consultar_classe_db(classe):
-    ''' Passa a classe ex: Produto, Cliente e retorna o resultado '''
+def consultar_todos_classe_db(classe):
+    ''' Passa a classe (ex: Produto, Cliente) e retorna os resultados '''
     try:
         session = conectar()
-        resultado = session.query(classe).all()
-        for item in resultado:
-            print(item)
+        return session.query(classe).all()
     except Exception as ex:
         print(ex)
+        return []
     finally:
         desconectar(session)
 

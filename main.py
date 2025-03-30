@@ -3,26 +3,34 @@ from crud_db import *
 from models import *
 from caixa import caixa
 
-produtos = ler_arquivo("produtos.csv")
-clientes = ler_arquivo("clientes.csv")
+def produtos_csv_para_db ():
+    produtos = ler_arquivo("produtos.csv")
+    # Adicionar produtos no banco de dados
+    excluir_todos_produtos_db()
+    for produto in produtos:
+        adicionar_produto_db(produto)
+    produtos_db = consultar_todos_classe_db(Produto)
+    return produtos_db
 
-# Adicionar produtos no banco de dados
-excluir_todos_produtos_db()
-for produto in produtos:
-    adicionar_produto_db(produto)
-# Adicionar clientes ao banco
-excluir_todos_clientes_db()
-for cliente in clientes:
-    adicionar_clients_csv_db(cliente)
+def clientes_csv_para_db ():
+    clientes = ler_arquivo("clientes.csv")
+    # Adicionar clientes ao banco
+    excluir_todos_clientes_db()
+    for cliente in clientes:
+        adicionar_clients_csv_db(cliente)
+    clientes_db = consultar_todos_classe_db(Cliente)
+    return clientes_db
 
-# verificar produtos
-consultar_classe_db(Produto)
-# verificar clientes
-consultar_classe_db(Cliente)
+produtos = produtos_csv_para_db ()
+clientes = clientes_csv_para_db ()
 
+if produtos != []:
+    produtos = caixa(produtos, clientes)
+gravar_arquivo(produtos)
 
-# if produtos != []:
-#     produtos = caixa(produtos)
-# gravar_arquivo(produtos)
-
-# instalar python-tabulate para o programa funcionar: pip install tabulate
+'''
+para instalar:
+sqlalchemy
+pymysql
+tabulate
+'''
