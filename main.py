@@ -33,4 +33,5 @@ para instalar:
 sqlalchemy
 pymysql
 tabulate
+pandas
 '''
