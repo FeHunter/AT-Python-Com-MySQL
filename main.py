@@ -25,8 +25,8 @@ produtos = produtos_csv_para_db()
 clientes = clientes_csv_para_db()
 
 if produtos != []:
-    produtos = caixa(produtos, clientes)  # Chamando caixa para múltiplos atendimentos
-gravar_arquivo(produtos)
+    produtos = caixa(produtos, clientes)
+# gravar_arquivo(produtos)
 
 '''
 para instalar:
