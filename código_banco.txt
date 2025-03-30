@@ -1,0 +1,35 @@
+.open mercado-at.db
+.mode table
+
+drop table if exists cliente;
+drop table if exists produto;
+drop table if exists compra;
+drop table if exists item;
+
+create table cliente (
+	id_cliente integer primary key autoincrement,
+	nome char(50) not null
+);
+
+create table produto (
+	id_produto integer primary key autoincrement,
+	nome char(50) not null,
+	quantidade int not null,
+	preco real not null
+);
+
+create table compra (
+	id_compra integer primary key autoincrement,
+	data_compra char(30) not null,
+	id_cliente int not null,
+	foreign key (id_cliente) references cliente(id_cliente)
+);
+
+create table item (
+	id_item integer primary key autoincrement,
+	quantidade int not null,
+	id_compra int not null,
+	id_produto int not null,
+	foreign key (id_compra) references compra(id_compra),
+	foreign key (id_compra) references produto(id_produto)
+);
