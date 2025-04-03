@@ -4,8 +4,8 @@ from models import *
 from caixa import caixa
 
 # APAGA TODOS OS REGISTROS PARA INICAR DO ZERO
-excluir_todos_produtos_db()
-excluir_todos_clientes_db()
+# excluir_todos_produtos_db()
+# excluir_todos_clientes_db()
 
 def produtos_csv_para_db():
     produtos = ler_arquivo("produtos.csv")

@@ -57,17 +57,23 @@ def excluir_todos_clientes_db():
     finally:
         desconectar(session)
 
+def verificar_quantidade_na_tabela (session, verificar_classe):
+    ''' Verifica quantidade minica para ver se adiciona ou não os itens do csv '''
+    return session.query(verificar_classe).count()
+
 def adicionar_produto_db(produto):
     """Adiciona um novo produto ao banco de dados."""
     try:
         session = conectar()
-        # Resetar ID
-        session.execute(text("ALTER TABLE produto AUTO_INCREMENT = 1"))
-        session.commit()
-        # Adicionar produto
-        add_produto = Produto(produto[1], produto[2], produto[3])
-        session.add(add_produto)
-        session.commit()
+        qtd = verificar_quantidade_na_tabela(session, Produto)
+        if qtd <= 4:
+            # Resetar ID
+            session.execute(text("ALTER TABLE produto AUTO_INCREMENT = 1"))
+            session.commit()
+            # Adicionar produto
+            add_produto = Produto(produto[1], produto[2], produto[3])
+            session.add(add_produto)
+            session.commit()
     except Exception as ex:
         print(ex)
     finally:
@@ -76,13 +82,15 @@ def adicionar_produto_db(produto):
 def adicionar_clients_csv_db(cliente):
     try:
         session = conectar()
-        # Resetar ID
-        session.execute(text("ALTER TABLE cliente AUTO_INCREMENT = 1"))
-        session.commit()
-        # Adicionar cliente
-        add_cliente = Cliente(cliente[1])
-        session.add(add_cliente)
-        session.commit()
+        qtd = verificar_quantidade_na_tabela(session, Cliente)
+        if qtd <= 2:
+            # Resetar ID
+            session.execute(text("ALTER TABLE cliente AUTO_INCREMENT = 1"))
+            session.commit()
+            # Adicionar cliente
+            add_cliente = Cliente(cliente[1])
+            session.add(add_cliente)
+            session.commit()
     except Exception as ex:
         print(ex)
     finally:
